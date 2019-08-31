@@ -6,19 +6,32 @@ import java.io.File
 
 private val ttsDirectory = File("tts").apply { mkdirs() }
 fun main(args: Array<String>) {
+    if (args.isNotEmpty()) {
+        fetchAudio(args.toList())
+    } else {
+        fetchLessonAudio()
+    }
+    println(ttsDirectory.toURI())
+}
+
+private fun fetchLessonAudio() {
     val lessonsFile = File("LESSONS.LST")
     if (lessonsFile.exists()) {
-        val romanjiList = lessonsFile.readLines().mapNotNull() {
-            val parts = it.split(":")
-            if (parts[0] == "listen") {
-                parts[1].trim()
-            } else {
-                null
-            }
-        }
-        fetchAudio(romanjiList)
+        val romaji = loadLessonRomaji(lessonsFile)
+        fetchAudio(romaji)
     } else {
-        fetchAudio(listOf("odorokuhodo", "oozei"))
+        println("LESSONS.LST not found")
+    }
+}
+
+private fun loadLessonRomaji(lessonsFile: File): List<String> {
+    return lessonsFile.readLines().mapNotNull {
+        val parts = it.split(":")
+        if (parts[0] == "listen") {
+            parts[1].trim()
+        } else {
+            null
+        }
     }
 }
 
