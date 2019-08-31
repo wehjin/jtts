@@ -6,7 +6,23 @@ import java.io.File
 
 private val ttsDirectory = File("tts").apply { mkdirs() }
 fun main(args: Array<String>) {
-    val romanjiList = listOf("odorokuhodo", "oozei")
+    val lessonsFile = File("LESSONS.LST")
+    if (lessonsFile.exists()) {
+        val romanjiList = lessonsFile.readLines().mapNotNull() {
+            val parts = it.split(":")
+            if (parts[0] == "listen") {
+                parts[1].trim()
+            } else {
+                null
+            }
+        }
+        fetchAudio(romanjiList)
+    } else {
+        fetchAudio(listOf("odorokuhodo", "oozei"))
+    }
+}
+
+private fun fetchAudio(romanjiList: List<String>) {
     romanjiList.fold(false, { fetched, romanji ->
         if (fetched) {
             println("Wait before next download")
