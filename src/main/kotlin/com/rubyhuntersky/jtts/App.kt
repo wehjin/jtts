@@ -3,6 +3,8 @@ package com.rubyhuntersky.jtts
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 private val ttsDirectory = File("tts").apply { mkdirs() }
 fun main(args: Array<String>) {
@@ -20,7 +22,7 @@ private fun fetchLessonAudio() {
         val romaji = loadLessonRomaji(lessonsFile)
         fetchAudio(romaji)
     } else {
-        println("LESSONS.LST not found")
+        println("${lessonsFile.absolutePath} not found")
     }
 }
 
@@ -35,8 +37,8 @@ private fun loadLessonRomaji(lessonsFile: File): List<String> {
     }
 }
 
-private fun fetchAudio(romanjiList: List<String>) {
-    romanjiList.fold(false, { fetched, romanji ->
+private fun fetchAudio(soundList: List<String>) {
+    soundList.fold(false, { fetched, romanji ->
         if (fetched) {
             println("Wait before next download")
             Thread.sleep(1000)
@@ -45,14 +47,17 @@ private fun fetchAudio(romanjiList: List<String>) {
     })
 }
 
-private fun fetchAudio(romanji: String): Boolean {
-    println("Processing: $romanji")
-    val file = File(ttsDirectory, "${romanji}_tts.mp3")
+private fun fetchAudio(sound: String): Boolean {
+    val parts = sound.split("/")
+    val filename = parts[0]
+    val search = if (parts.size > 1) URLEncoder.encode(parts[1], StandardCharsets.UTF_8.toString()) else parts[0]
+    println("Processing: $sound")
+    val file = File(ttsDirectory, "${filename}_tts.mp3")
     return if (file.exists()) {
         println("Already exists. Skipping.")
         false
     } else {
-        val url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=$romanji&tl=ja"
+        val url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=$search&tl=ja"
         println("Download: $url")
         val client = OkHttpClient()
         val request = Request.Builder().url(url).build()
